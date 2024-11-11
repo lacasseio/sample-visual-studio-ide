@@ -78,6 +78,7 @@ public class CoreVisualStudioIdePlugin implements Plugin<Project> {
                 }
 
                 DefaultVisualStudioIdeTarget target = new DefaultVisualStudioIdeTarget(projectConfiguration(binary), objects);
+                Provider<CppBinary> developmentBinary = providers.provider(() -> binary);
 
                 target.getProductLocation().set(toProductLocation(binary));
                 target.getProperties().put("ConfigurationType", toConfigurationType(binary));
@@ -86,10 +87,10 @@ public class CoreVisualStudioIdePlugin implements Plugin<Project> {
                 target.getProperties().put("CharacterSet", "Unicode");
                 target.getProperties().put("LinkIncremental", true);
                 target.getItemProperties().maybeCreate("ClCompile")
-                        .put("AdditionalIncludeDirectories", toAdditionalIncludeDirectories(binary))
-                        .put("LanguageStandard", toLanguageStandard().transform(binary));
+                        .put("AdditionalIncludeDirectories", developmentBinary.flatMap(this::toAdditionalIncludeDirectories))
+                        .put("LanguageStandard", developmentBinary.flatMap(toLanguageStandard()));
                 target.getItemProperties().maybeCreate("Link")
-                        .put("SubSystem", providers.provider(() -> binary).map(toSubSystem()));
+                        .put("SubSystem", developmentBinary.flatMap(toSubSystem()));
 
                 ideProject.getTargets().add(target);
             }
