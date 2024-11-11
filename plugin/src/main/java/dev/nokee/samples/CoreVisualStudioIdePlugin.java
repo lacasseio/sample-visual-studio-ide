@@ -30,6 +30,7 @@ import org.gradle.nativeplatform.MachineArchitecture;
 import javax.inject.Inject;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import static java.util.stream.Collectors.joining;
@@ -88,11 +89,17 @@ public class CoreVisualStudioIdePlugin implements Plugin<Project> {
                 target.getProperties().put("LinkIncremental", true);
                 target.getItemProperties().maybeCreate("ClCompile")
                         .put("AdditionalIncludeDirectories", developmentBinary.flatMap(this::toAdditionalIncludeDirectories))
-                        .put("LanguageStandard", developmentBinary.flatMap(toLanguageStandard()));
+                        .put("LanguageStandard", developmentBinary.flatMap(toLanguageStandard()))
+                        .put("PreprocessorDefinitions", developmentBinary.flatMap(this::toMacros))
+                ;
                 target.getItemProperties().maybeCreate("Link")
                         .put("SubSystem", developmentBinary.flatMap(toSubSystem()));
 
                 ideProject.getTargets().add(target);
+            }
+
+            private Provider<String> toMacros(CppBinary binary) {
+                return providers.provider(() -> binary.getCompileTask().get().getMacros().entrySet().stream().map(it -> it.getKey() + "=" + it.getValue()).collect(Collectors.joining(";")) + ";%(PreprocessorDefinitions)");
             }
 
             private Provider<RegularFile> toProductLocation(CppBinary binary) {
