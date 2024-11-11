@@ -1,0 +1,7 @@
+plugins {
+    id 'nokee-samples.visual-studio'
+}
+
+subprojects {
+    apply plugin: 'nokee-samples.visual-studio'
+}

@@ -1,0 +1,73 @@
+plugins {
+    // Apply the Java Gradle plugin development plugin to add support for developing Gradle plugins
+    id 'java-gradle-plugin'
+}
+
+//repositories {
+//    // Use Maven Central for resolving dependencies.
+//    mavenCentral()
+//}
+
+repositories {
+//    maven {
+//        name = "Nokee Release Repository"
+//        url = uri("https://repo.nokee.dev/release")
+//        mavenContent {
+//            includeGroupByRegex("dev\\.nokee.*")
+//            includeGroupByRegex("dev\\.gradleplugins.*")
+//        }
+//    }
+    maven {
+        name = "Nokee Snapshot Repository"
+        url = uri("https://repo.nokee.dev/snapshot")
+        mavenContent {
+            includeGroupByRegex("dev\\.nokee.*")
+            includeGroupByRegex("dev\\.gradleplugins.*")
+        }
+    }
+    gradlePluginPortal()
+}
+
+dependencies {
+    implementation 'dev.nokee.visual-studio-ide-base:dev.nokee.visual-studio-ide-base.gradle.plugin:0.4.3129-202303171612.d413fb13'
+//    implementation 'dev.nokee:ideVisualStudio:0.4.3124-202303161846.49729204'
+    // Use JUnit Jupiter for testing.
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.8.2'
+}
+
+gradlePlugin {
+    // Define the plugin
+    plugins {
+        greeting {
+            id = 'nokee-samples.visual-studio'
+            implementationClass = 'dev.nokee.samples.CoreVisualStudioIdePlugin'
+        }
+    }
+}
+
+// Add a source set for the functional test suite
+sourceSets {
+    functionalTest {
+    }
+}
+
+configurations.functionalTestImplementation.extendsFrom(configurations.testImplementation)
+
+// Add a task to run the functional tests
+tasks.register('functionalTest', Test) {
+    testClassesDirs = sourceSets.functionalTest.output.classesDirs
+    classpath = sourceSets.functionalTest.runtimeClasspath
+    useJUnitPlatform()
+}
+
+gradlePlugin.testSourceSets(sourceSets.functionalTest)
+
+tasks.named('check') {
+    // Run the functional tests as part of `check`
+    dependsOn(tasks.functionalTest)
+}
+
+tasks.named('test') {
+    // Use JUnit Jupiter for unit tests.
+    useJUnitPlatform()
+}
