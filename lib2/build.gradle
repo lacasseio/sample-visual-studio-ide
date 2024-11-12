@@ -4,4 +4,7 @@ plugins {
 
 library {
     linkage = [Linkage.STATIC]
+    dependencies {
+        implementation 'dev.nokee.samples:lib3'
+    }
 }

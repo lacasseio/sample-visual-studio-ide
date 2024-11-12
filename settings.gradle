@@ -22,4 +22,6 @@ pluginManagement {
 }
 rootProject.name = 'sample-visual-studio-ide'
 
+includeBuild 'lib3'
+
 include 'app', 'lib1', 'lib2'

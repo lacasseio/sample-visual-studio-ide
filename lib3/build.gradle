@@ -1,11 +1,12 @@
 plugins {
     id 'cpp-library'
+    id 'nokee-samples.visual-studio'
 }
 
+group = 'dev.nokee.samples'
+version = '1.0'
+
 library {
-    dependencies {
-        implementation project(':lib2')
-    }
     binaries.configureEach {
         compileTask.get().macros.put("BUILD_DLL", "")
     }

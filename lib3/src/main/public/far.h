@@ -7,4 +7,4 @@
 #endif
 #endif
 
-int foo();
+int far();

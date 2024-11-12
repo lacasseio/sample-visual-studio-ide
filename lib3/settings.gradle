@@ -1,0 +1,15 @@
+pluginManagement {
+    repositories {
+        maven {
+            name = "Nokee Snapshot Repository"
+            url = uri("https://repo.nokee.dev/snapshot")
+            mavenContent {
+                includeGroupByRegex("dev\\.nokee.*")
+                includeGroupByRegex("dev\\.gradleplugins.*")
+            }
+        }
+        gradlePluginPortal()
+    }
+    includeBuild '../plugin'
+}
+rootProject.name = 'lib3'
