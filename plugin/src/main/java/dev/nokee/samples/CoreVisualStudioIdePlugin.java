@@ -18,6 +18,8 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.tasks.Copy;
+import org.gradle.language.cpp.CppApplication;
 import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.cpp.CppComponent;
 import org.gradle.language.cpp.CppExecutable;
@@ -29,6 +31,7 @@ import org.gradle.nativeplatform.MachineArchitecture;
 
 import javax.inject.Inject;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -54,7 +57,21 @@ public class CoreVisualStudioIdePlugin implements Plugin<Project> {
         VisualStudioIdeProjectExtension extension = project.getExtensions().getByType(VisualStudioIdeProjectExtension.class);
         project.getComponents().withType(CppComponent.class).configureEach(component -> {
             extension.getProjects().register(component.getName(), it -> configure((DefaultVisualStudioIdeProject) it, component));
+            if (component instanceof CppApplication) {
+                project.getTasks().withType(Copy.class).configureEach(task -> {
+                    String action = Objects.toString(project.property("dev.nokee.internal.visualStudio.bridge.Action"));
+                    String platformName = Objects.toString(project.property("dev.nokee.internal.visualStudio.bridge.PlatformName"));
+                    String configuration =  Objects.toString(project.property("dev.nokee.internal.visualStudio.bridge.Configuration"));
+                    String projectName = Objects.toString(project.property("dev.nokee.internal.visualStudio.bridge.ProjectName"));
+                    if (task.getName().equals("_visualStudio__" + action + "_" + projectName + "_" + configuration + "_" + platformName)) {
+                        task.from((Callable<?>) () -> {
+                            return component.getBinaries().get().stream().filter(it -> it.getName().contains(configuration.substring(1))).findFirst().orElseThrow().getRuntimeLibraries();
+                        });
+                    }
+                });
+            }
         });
+
     }
 
     private static FileCollection cppSourceOf(CppComponent component) {
