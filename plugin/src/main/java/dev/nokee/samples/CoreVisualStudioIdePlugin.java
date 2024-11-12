@@ -26,7 +26,6 @@ import org.gradle.language.cpp.CppSharedLibrary;
 import org.gradle.language.cpp.CppStaticLibrary;
 import org.gradle.language.cpp.tasks.CppCompile;
 import org.gradle.nativeplatform.MachineArchitecture;
-import org.gradle.nativeplatform.tasks.InstallExecutable;
 
 import javax.inject.Inject;
 import java.util.List;
@@ -105,7 +104,7 @@ public class CoreVisualStudioIdePlugin implements Plugin<Project> {
 
             private Provider<RegularFile> toProductLocation(CppBinary binary) {
                 if (binary instanceof CppExecutable) {
-                    return ((CppExecutable) binary).getInstallTask().flatMap(InstallExecutable::getRunScriptFile);
+                    return ((CppExecutable) binary).getExecutableFile();
                 } else if (binary instanceof CppSharedLibrary) {
                     return ((CppSharedLibrary) binary).getRuntimeFile();
                 } else if (binary instanceof CppStaticLibrary) {
