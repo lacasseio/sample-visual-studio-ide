@@ -31,6 +31,7 @@ import org.gradle.nativeplatform.MachineArchitecture;
 
 import javax.inject.Inject;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
@@ -65,7 +66,7 @@ public class CoreVisualStudioIdePlugin implements Plugin<Project> {
                     String projectName = Objects.toString(project.property("dev.nokee.internal.visualStudio.bridge.ProjectName"));
                     if (task.getName().equals("_visualStudio__" + action + "_" + projectName + "_" + configuration + "_" + platformName)) {
                         task.from((Callable<?>) () -> {
-                            return component.getBinaries().get().stream().filter(it -> it.getName().contains(configuration.substring(1))).findFirst().orElseThrow().getRuntimeLibraries();
+                            return component.getBinaries().get().stream().filter(it -> it.getName().contains(configuration.substring(1))).findFirst().orElseThrow(() -> new NoSuchElementException("No value present")).getRuntimeLibraries();
                         });
                     }
                 });
