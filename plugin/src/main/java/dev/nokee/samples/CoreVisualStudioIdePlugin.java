@@ -30,6 +30,7 @@ import org.gradle.language.cpp.CppStaticLibrary;
 import org.gradle.language.cpp.tasks.CppCompile;
 import org.gradle.nativeplatform.MachineArchitecture;
 import org.gradle.nativeplatform.test.cpp.CppTestExecutable;
+import org.gradle.nativeplatform.test.cpp.CppTestSuite;
 
 import javax.inject.Inject;
 import java.util.List;
@@ -62,7 +63,7 @@ public class CoreVisualStudioIdePlugin implements Plugin<Project> {
         VisualStudioIdeProjectExtension extension = project.getExtensions().getByType(VisualStudioIdeProjectExtension.class);
         project.getComponents().withType(CppComponent.class).configureEach(component -> {
             extension.getProjects().register(component.getName(), it -> configure((DefaultVisualStudioIdeProject) it, component));
-            if (component instanceof CppApplication) {
+            if (component instanceof CppApplication || component instanceof CppTestSuite) {
                 project.getTasks().withType(Copy.class).configureEach(task -> {
                     String action = Objects.toString(project.property("dev.nokee.internal.visualStudio.bridge.Action"));
                     String platformName = Objects.toString(project.property("dev.nokee.internal.visualStudio.bridge.PlatformName"));
