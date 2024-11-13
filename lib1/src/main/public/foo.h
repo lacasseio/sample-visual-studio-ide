@@ -7,4 +7,4 @@
 #endif
 #endif
 
-int foo();
+IMPORT_EXPORT int foo();

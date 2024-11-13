@@ -7,4 +7,4 @@
 #endif
 #endif
 
-int far();
+IMPORT_EXPORT int far();
