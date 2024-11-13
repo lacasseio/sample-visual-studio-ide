@@ -71,7 +71,7 @@ public class CoreVisualStudioIdePlugin implements Plugin<Project> {
                     String projectName = Objects.toString(project.property("dev.nokee.internal.visualStudio.bridge.ProjectName"));
                     if (task.getName().equals("_visualStudio__" + action + "_" + projectName + "_" + configuration + "_" + platformName)) {
                         task.from((Callable<?>) () -> {
-                            return component.getBinaries().get().stream().filter(it -> it.getName().contains(configuration.substring(1))).findFirst().orElseThrow(() -> new NoSuchElementException("No value present")).getRuntimeLibraries();
+                            return component.getBinaries().get().stream().filter(it -> it instanceof CppTestExecutable || it.getName().contains(configuration.substring(1))).findFirst().orElseThrow(() -> new NoSuchElementException("No value present")).getRuntimeLibraries();
                         });
                     }
                 });
