@@ -11,6 +11,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Transformer;
+import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFile;
@@ -28,6 +29,7 @@ import org.gradle.language.cpp.CppSharedLibrary;
 import org.gradle.language.cpp.CppStaticLibrary;
 import org.gradle.language.cpp.tasks.CppCompile;
 import org.gradle.nativeplatform.MachineArchitecture;
+import org.gradle.nativeplatform.test.cpp.CppTestExecutable;
 
 import javax.inject.Inject;
 import java.util.List;
@@ -43,12 +45,14 @@ public class CoreVisualStudioIdePlugin implements Plugin<Project> {
     private final ProjectLayout layout;
     private final ObjectFactory objects;
     private final ProviderFactory providers;
+    private final ConfigurationContainer configurations;
 
     @Inject
-    public CoreVisualStudioIdePlugin(ProjectLayout layout, ObjectFactory objects, ProviderFactory providers) {
+    public CoreVisualStudioIdePlugin(ProjectLayout layout, ObjectFactory objects, ProviderFactory providers, ConfigurationContainer configurations) {
         this.layout = layout;
         this.objects = objects;
         this.providers = providers;
+        this.configurations = configurations;
     }
 
     @Override
@@ -127,6 +131,8 @@ public class CoreVisualStudioIdePlugin implements Plugin<Project> {
                     return ((CppSharedLibrary) binary).getRuntimeFile();
                 } else if (binary instanceof CppStaticLibrary) {
                     return ((CppStaticLibrary) binary).getLinkFile();
+                } else if (binary instanceof CppTestExecutable) {
+                    return ((CppTestExecutable) binary).getExecutableFile();
                 }
                 throw unsupportedBinaryType(binary);
             }
@@ -140,7 +146,7 @@ public class CoreVisualStudioIdePlugin implements Plugin<Project> {
                     return "DynamicLibrary";
                 } else if (binary instanceof CppStaticLibrary) {
                     return "StaticLibrary";
-                } else if (binary instanceof CppExecutable) {
+                } else if (binary instanceof CppExecutable || binary instanceof CppTestExecutable) {
                     return "Application";
                 }
                 throw unsupportedBinaryType(binary);
@@ -245,10 +251,41 @@ public class CoreVisualStudioIdePlugin implements Plugin<Project> {
             configuration = VisualStudioIdeConfiguration.of("Debug");
         } else if (binary.getName().contains("elease")) {
             configuration = VisualStudioIdeConfiguration.of("Release");
+        } else if (binary instanceof CppTestExecutable) {
+            if (Objects.requireNonNull(configurations.getByName("nativeLink" + capitalize(qualifyingName(binary))).getAttributes().getAttribute(CppBinary.OPTIMIZED_ATTRIBUTE))) {
+                configuration = VisualStudioIdeConfiguration.of("Release");
+            } else {
+                configuration = VisualStudioIdeConfiguration.of("Debug");
+            }
         } else {
             throw new IllegalArgumentException("Unsupported build type for Visual Studio IDE.");
         }
 
         return VisualStudioIdeProjectConfiguration.of(configuration, idePlatform);
     }
+
+    //region Names
+    private static String qualifyingName(CppBinary binary) {
+        // The binary name follow the pattern <componentName><variantName>[Executable]
+        String result = binary.getName();
+        if (result.startsWith("main")) {
+            result = result.substring("main".length());
+        }
+
+        // CppTestExecutable
+        if (binary instanceof CppTestExecutable) {
+            result = result.substring(0, binary.getName().length() - "Executable".length());
+        }
+
+        return uncapitalize(result);
+    }
+
+    private static String capitalize(String s) {
+        return Character.toUpperCase(s.charAt(0)) + s.substring(1);
+    }
+
+    private static String uncapitalize(String s) {
+        return Character.toLowerCase(s.charAt(0)) + s.substring(1);
+    }
+    //endregion
 }
