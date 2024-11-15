@@ -65,10 +65,10 @@ public class CoreVisualStudioIdePlugin implements Plugin<Project> {
             extension.getProjects().register(component.getName(), it -> configure((DefaultVisualStudioIdeProject) it, component));
             if (component instanceof CppApplication || component instanceof CppTestSuite) {
                 project.getTasks().withType(Copy.class).configureEach(task -> {
-                    String action = Objects.toString(project.property("dev.nokee.internal.visualStudio.bridge.Action"));
-                    String platformName = Objects.toString(project.property("dev.nokee.internal.visualStudio.bridge.PlatformName"));
-                    String configuration =  Objects.toString(project.property("dev.nokee.internal.visualStudio.bridge.Configuration"));
-                    String projectName = Objects.toString(project.property("dev.nokee.internal.visualStudio.bridge.ProjectName"));
+                    final String action = project.getProviders().gradleProperty("dev.nokee.internal.visualStudio.bridge.Action").map(Object::toString).getOrElse("");
+                    final String platformName = project.getProviders().gradleProperty("dev.nokee.internal.visualStudio.bridge.PlatformName").map(Object::toString).getOrElse("");
+                    final String configuration =  project.getProviders().gradleProperty("dev.nokee.internal.visualStudio.bridge.Configuration").map(Object::toString).getOrElse("");
+                    final String projectName = project.getProviders().gradleProperty("dev.nokee.internal.visualStudio.bridge.ProjectName").map(Object::toString).getOrElse("");
                     if (task.getName().equals("_visualStudio__" + action + "_" + projectName + "_" + configuration + "_" + platformName)) {
                         task.from((Callable<?>) () -> {
                             return component.getBinaries().get().stream().filter(it -> it instanceof CppTestExecutable || it.getName().contains(configuration.substring(1))).findFirst().orElseThrow(() -> new NoSuchElementException("No value present")).getRuntimeLibraries();

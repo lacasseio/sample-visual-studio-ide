@@ -11,3 +11,6 @@ library {
         compileTask.get().macros.put("BUILD_DLL", "")
     }
 }
+
+ //
+tasks.register('copy', Copy).get()
